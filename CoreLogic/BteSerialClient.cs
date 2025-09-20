@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Net.Mime;
+using IN12B8_WindowsService.CoreLogic;
 
 namespace IN12B8_WindowsService;
 using System.IO.Ports;
@@ -60,19 +62,30 @@ public class BteSerialClient
 
     private async Task FindAndConnectPort()
     {
-        for (int i = 0; i < 32; i++)
+        string portString = TxtHandler.ReadTxt("comport.txt");
+        
+        if (!Int32.TryParse(portString, out int port))
         {
-            CreateSerialPort(i);
+            await Task.Delay(10000);
+            await FindAndConnectPort();
+            return;
+        }
+        
+        CreateSerialPort(port);
+        
+        for (int i = 0; i < 10; i++)
+        {
+            CreateSerialPort(port);
             
             if (await TryOpenSerialPort())
             {
-                Console.WriteLine("successfully connected to COM" + i);
+                Console.WriteLine("successfully connected to COM" + port);
                 _connected = true;
                 return;
             }
             
-            Console.WriteLine("COM" + i + " returned error");
-            await Task.Delay(500);
+            Console.WriteLine("COM" + port + " returned error");
+            await Task.Delay(1500);
         }
 
         await FindAndConnectPort();

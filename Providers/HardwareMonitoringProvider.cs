@@ -65,8 +65,8 @@ public class HardwareMonitoringProvider : FormattedStringProvider
         _cpu?.Update();
         _gpu?.Update();
         
-        return "-" + FloatFormatter.FormatFloat3Digits(_cpuLoad?.Value) + "-" +
-               FloatFormatter.FormatFloat3Digits(_gpuLoad?.Value) + "00end.\n";
+        return "-" + FloatFormatter.FormatFloat3Digits(_cpuTemp?.Value) + "-" +
+               FloatFormatter.FormatFloat3Digits(_gpuTemp?.Value) + "00end.\n";
     }
 
     public HardwareMonitoringProvider(int duration) : base(duration) { }

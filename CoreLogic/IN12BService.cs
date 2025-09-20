@@ -22,7 +22,7 @@ public class In12BService
 
     private void CreateProviders()
     {
-        _providersList.Add(new DateProvider(3000));
+        _providersList.Add(new DateBackwardsProvider(3000));
         _providersList.Add(new DivergenceMeterProvider(5000));
         _providersList.Add(new ClockProvider(5000));
         _providersList.Add(new CountdownProvider(10000));

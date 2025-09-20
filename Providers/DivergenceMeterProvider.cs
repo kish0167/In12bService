@@ -14,6 +14,8 @@ public class DivergenceMeterProvider : FormattedStringProvider
     private double _currentDivergence = 0f;
     private double _shownDivergence = 0f;
     private bool _isRunning = false;
+    private const int IdleMinSeconds = 5;
+    private const int IdleMaxSeconds = 10;
 
     public DivergenceMeterProvider(int duration) : base(duration)
     {
@@ -44,7 +46,7 @@ public class DivergenceMeterProvider : FormattedStringProvider
     {
         Random random = new();
         int staticDivergenceThreshold = 0;
-        int staticDivergenceCap = 120;
+        int staticDivergenceCap = IdleMinSeconds;
         
         while (_isRunning)
         {
@@ -53,7 +55,7 @@ public class DivergenceMeterProvider : FormattedStringProvider
             
             if (Math.Abs(_currentDivergence - prev) > 0.0000001f)
             {
-                await ShowEffect();
+                await ShowEffect(80);
             }
             else
             {
@@ -63,29 +65,30 @@ public class DivergenceMeterProvider : FormattedStringProvider
             if (staticDivergenceThreshold >= staticDivergenceCap)
             {
                 staticDivergenceThreshold = 0;
-                staticDivergenceCap = (int)random.NextInt64(120, 600);
-                await ShowEffect();
+                staticDivergenceCap = (int)random.NextInt64(IdleMinSeconds, IdleMaxSeconds);
+                await ShowEffect(20);
             }
             
             await Task.Delay(1000);
         }
     }
-
-    private async Task ShowEffect()
+    
+    private async Task ShowEffect(int duration)
     {
         Random random = new();
-        double divider = 10f;
+        double power = 10;
 
-        for (int i = 0; i < 40; i++)
+        for (int i = 0; i < 7; i++)
         {
-            for (int j = 0; j < 50; j++)
+            for (int j = 0; j < duration; j++)
             {
-                double randDouble = (random.NextDouble() - 0.5f) * divider * 2;
-                _shownDivergence = double.Abs(_currentDivergence + randDouble);
-                await Task.Delay(10);
+                double extra = random.NextDouble() * power;
+                extra -= _currentDivergence % power;
+                _shownDivergence = _currentDivergence + extra;
+                await Task.Delay(28);
             }
-            
-            divider /= 2;
+
+            power /= 10;
         }
 
         _shownDivergence = _currentDivergence;

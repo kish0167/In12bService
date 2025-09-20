@@ -112,3 +112,8 @@ T:\pico_stuff\projects\IN12B8_WindowsService\IN12B8_WindowsService\bin\Debug\net
 T:\pico_stuff\projects\IN12B8_WindowsService\IN12B8_WindowsService\bin\Debug\net8.0\runtimes\win-x86\native\MonoPosixHelper.dll
 T:\pico_stuff\projects\IN12B8_WindowsService\IN12B8_WindowsService\bin\Debug\net8.0\runtimes\win-x86\native\libMonoPosixHelper.dll
 T:\pico_stuff\projects\IN12B8_WindowsService\IN12B8_WindowsService\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Management.dll
+T:\pico_stuff\projects\IN12B8_WindowsService\IN12B8_WindowsService\bin\Debug\net8.0\build\net8.0\build\net8.0\build\net8.0\build\net8.0\appsettings.Development.json
+T:\pico_stuff\projects\IN12B8_WindowsService\IN12B8_WindowsService\bin\Debug\net8.0\build\net8.0\build\net8.0\build\net8.0\build\net8.0\appsettings.json
+T:\pico_stuff\projects\IN12B8_WindowsService\IN12B8_WindowsService\bin\Debug\net8.0\build\net8.0\build\net8.0\build\net8.0\build\net8.0\IN12B8_WindowsService.deps.json
+T:\pico_stuff\projects\IN12B8_WindowsService\IN12B8_WindowsService\bin\Debug\net8.0\build\net8.0\build\net8.0\build\net8.0\build\net8.0\IN12B8_WindowsService.runtimeconfig.json
+T:\pico_stuff\projects\IN12B8_WindowsService\IN12B8_WindowsService\obj\Debug\net8.0\IN12B8_WindowsService.sourcelink.json

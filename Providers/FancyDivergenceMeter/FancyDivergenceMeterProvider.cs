@@ -9,17 +9,20 @@ public class FancyDivergenceMeterProvider(int duration)
 {
     private readonly MoeDivergenceApiClient _api = new();
     private readonly List<DivergenceMeterEffect> _effects = [
-        new UnstableDigitEffect(10, new TubeCyclicChanger()),
+        new UnstableDigitEffect(12, new TubeCyclicChanger()),
         new FailingTubeEffect(),
         new SequentialStabilizeEffect(4, new TubeCyclicChanger()),
-        new SequentialFailEffect(new ExcludingRandomChanger()),
+        new SequentialFailEffect(new RandomChanger()),
     ];
 
-    private readonly float _randomEffectChance = 1f;
+    private readonly DivergenceMeterEffect _transitionEffect =
+        new SequentialStabilizeEffect(30, new ExcludingRandomChanger());
+
+    private readonly float _randomEffectChance = 0.5f;
     
     private readonly Random _random = new();
-    private bool _isRunning = false;
-    private double _currentDivergence = 0.0;
+    private bool _isRunning;
+    private double _currentDivergence;
     private int[] _displayValue = [0,0,0,0,0,0,0];
     private DivergenceMeterEffect? _activeEffect;
 
@@ -62,9 +65,9 @@ public class FancyDivergenceMeterProvider(int duration)
             if (Math.Abs(newValue - _currentDivergence) > 0.000001)
             {
                 _currentDivergence = newValue;
-                TriggerRandomEffect(newValue);
+                TriggerTransitionEffect(newValue);
             }
-            else if (_random.NextSingle() < _randomEffectChance)
+            else if (_random.NextSingle() < _randomEffectChance && (_activeEffect?.IsFinished ?? true))
             {
                 TriggerRandomEffect(newValue);
             }
@@ -77,6 +80,12 @@ public class FancyDivergenceMeterProvider(int duration)
     {
         if (_effects.Count == 0) return;
         _activeEffect = _effects[_random.Next(_effects.Count)];
+        _activeEffect.Reset(targetValue);
+    }
+
+    private void TriggerTransitionEffect(double targetValue)
+    {
+        _activeEffect = _transitionEffect;
         _activeEffect.Reset(targetValue);
     }
     

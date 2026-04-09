@@ -1,4 +1,3 @@
-using IN12B8_WindowsService.CoreLogic;
 using IN12B8_WindowsService.Extensions;
 using IN12B8_WindowsService.Providers;
 using IN12B8_WindowsService.Providers.FancyDivergenceMeter;
@@ -10,7 +9,11 @@ builder.AddIn12BService(options =>
 {
     options.Providers =
     [
-        new FancyDivergenceMeterProvider(1000),
+        new FancyDivergenceMeterProvider(25000),
+        new DateBackwardsProvider(5000),
+        new ClockProvider(15000),
+        new CountdownProvider(15000),
+        new HardwareMonitoringProvider(6000)
     ];
 });
 

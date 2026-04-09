@@ -2,20 +2,20 @@ namespace IN12B8_WindowsService;
 
 public class In12BService
 {
-    private BteSerialClient _bte = new();
+    private readonly BteSerialClient _bte = new();
     private FormattedStringProvider? _currentProvider = null;
-    private List<FormattedStringProvider> _providersList = new();
+    private readonly List<FormattedStringProvider> _providersList = new();
     
     public async Task Run(CancellationToken ct)
     {
         CreateProviders();
         await _bte.Connect();
         SetNextProvider();
-        _ = Task.Run(CurrentProviderCycle);
+        _ = Task.Run(() => MainCycle(ct), ct);
         
         while (!ct.IsCancellationRequested)
         {
-            await Task.Delay(_currentProvider.Duration);
+            await Task.Delay(_currentProvider?.Duration ?? 1000, ct);
             SetNextProvider();
         }
     }
@@ -52,12 +52,12 @@ public class In12BService
         _currentProvider = _providersList[index];
     }
     
-    private async Task CurrentProviderCycle()
+    private async Task MainCycle(CancellationToken ct)
     {
-        while (true)
+        while (!ct.IsCancellationRequested)
         {
             _bte.SendString(_currentProvider?.GetValueString() ?? "0100011100end.\n");
-            await Task.Delay(30);
+            await Task.Delay(30, ct);
         }
     }
 }

@@ -10,6 +10,7 @@ public abstract class FormattedStringProvider
     {
         _duration = duration;
     }
-    public abstract void Init();
+
+    public virtual void Init() { }
     public abstract string GetValueString();
 }

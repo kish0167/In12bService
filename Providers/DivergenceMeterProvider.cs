@@ -24,13 +24,7 @@ public class DivergenceMeterProvider(int duration)  : FormattedStringProvider(du
     {
         string message = "40end.\n";
         string number = _shownDivergence.ToString(CultureInfo.InvariantCulture) + "000000000";
-        
-        for (int i = 7; i >= 0; i--)
-        {
-            message = number[i] + message;
-        }
-
-        return message;
+        return number.Substring(0, 8) + message;
     }
 
     private async Task DivergenceFetchCycle()
@@ -57,7 +51,7 @@ public class DivergenceMeterProvider(int duration)  : FormattedStringProvider(du
             {
                 staticDivergenceThreshold = 0;
                 staticDivergenceCap = (int)random.NextInt64(IdleMinSeconds, IdleMaxSeconds);
-                await ShowEffect(20);
+                await ShowEffect(10);
             }
             
             await Task.Delay(1000);

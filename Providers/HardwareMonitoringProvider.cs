@@ -1,9 +1,11 @@
-namespace IN12B8_WindowsService;
+using IN12B8_WindowsService.Providers.Helpers;
 using LibreHardwareMonitor.Hardware;
 
-public class HardwareMonitoringProvider : FormattedStringProvider
+namespace IN12B8_WindowsService.Providers;
+
+public class HardwareMonitoringProvider(int duration) : FormattedStringProvider(duration)
 {
-    private Computer _computer = new Computer()
+    private readonly Computer _computer = new Computer()
     {
         IsCpuEnabled = true,
         IsGpuEnabled = true
@@ -68,6 +70,4 @@ public class HardwareMonitoringProvider : FormattedStringProvider
         return "-" + FloatFormatter.FormatFloat3Digits(_cpuTemp?.Value) + "-" +
                FloatFormatter.FormatFloat3Digits(_gpuTemp?.Value) + "00end.\n";
     }
-
-    public HardwareMonitoringProvider(int duration) : base(duration) { }
 }

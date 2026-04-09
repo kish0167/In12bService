@@ -1,34 +1,25 @@
 using System.Globalization;
-
-namespace IN12B8_WindowsService;
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
 using System.Text.Json;
+using IN12B8_WindowsService.Providers.FancyDivergenceMeter;
 
-public class DivergenceMeterProvider : FormattedStringProvider
+namespace IN12B8_WindowsService.Providers;
+
+public class DivergenceMeterProvider(int duration)  : FormattedStringProvider(duration) 
 {
-    private readonly HttpClient _httpClient;
-    private const string BaseUrl = "https://divergence.nyarchlinux.moe";
+    private readonly MoeDivergenceApiClient _api = new();
 
     private double _currentDivergence = 0f;
     private double _shownDivergence = 0f;
     private bool _isRunning = false;
-    private const int IdleMinSeconds = 5;
-    private const int IdleMaxSeconds = 10;
-
-    public DivergenceMeterProvider(int duration) : base(duration)
-    {
-        _duration = duration;
-        _httpClient = new HttpClient();
-        _httpClient.BaseAddress = new Uri(BaseUrl);
-        _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-    }
+    private const int IdleMinSeconds = 1;
+    private const int IdleMaxSeconds = 3;
+    
     public override void Init()
     {
         _isRunning = true;
         Task.Run(DivergenceFetchCycle);
     }
+    
     public override string GetValueString()
     {
         string message = "40end.\n";
@@ -96,25 +87,7 @@ public class DivergenceMeterProvider : FormattedStringProvider
 
     private async Task UpdateDivergence()
     {
-        try
-        {
-            var response = await _httpClient.GetAsync("/api/divergence");
-            response.EnsureSuccessStatusCode();
-
-            var json = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<DivergenceResponse>(json);
-
-            _currentDivergence = result?.divergence ?? 0f;
-        }
-        catch
-        {
-            // ignored
-        }
-    }
-    
-    private class DivergenceResponse
-    {
-        public double divergence { get; set; }
+        _currentDivergence = await _api.GetDivergence();
     }
 }
 

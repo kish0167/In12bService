@@ -1,12 +1,7 @@
-namespace IN12B8_WindowsService;
+namespace IN12B8_WindowsService.Providers;
 
-public class LongClockProvider : FormattedStringProvider
+public class LongClockProvider(int duration) : FormattedStringProvider(duration)
 {
-    public override void Init()
-    {
-        
-    }
-
     public override string GetValueString()
     { 
         DateTime now = DateTime.Now;
@@ -19,8 +14,7 @@ public class LongClockProvider : FormattedStringProvider
         }
         
         msg = now.ToString("HHmmss") + msg;
+        
         return msg;
     }
-
-    public LongClockProvider(int duration) : base(duration) { }
 }

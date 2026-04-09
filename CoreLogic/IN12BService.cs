@@ -1,62 +1,45 @@
-namespace IN12B8_WindowsService;
+using IN12B8_WindowsService.Providers;
+using Microsoft.Extensions.Options;
 
-public class In12BService
+namespace IN12B8_WindowsService.CoreLogic;
+
+public class In12BService(IOptions<In12BOptions> options) : BackgroundService
 {
     private readonly BteSerialClient _bte = new();
-    private FormattedStringProvider? _currentProvider = null;
-    private readonly List<FormattedStringProvider> _providersList = new();
-    
-    public async Task Run(CancellationToken ct)
+    private FormattedStringProvider? _currentProvider;
+    private readonly List<FormattedStringProvider> _providersList = options.Value.Providers;
+
+    protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        CreateProviders();
-        await _bte.Connect();
-        SetNextProvider();
-        _ = Task.Run(() => MainCycle(ct), ct);
+        _providersList.ForEach(provider => provider.Init());   
+        await Run(ct);
+    }
+    
+    private async Task Run(CancellationToken ct)
+    {
+        _ = _bte.StartAsync(ct);
+        _ = MainCycle(ct);
         
         while (!ct.IsCancellationRequested)
         {
-            await Task.Delay(_currentProvider?.Duration ?? 1000, ct);
+            await Task.Delay(_currentProvider?.Duration ?? 500, ct);
             SetNextProvider();
-        }
-    }
-
-    private void CreateProviders()
-    {
-        _providersList.Add(new DateBackwardsProvider(3000));
-        _providersList.Add(new DivergenceMeterProvider(5000));
-        _providersList.Add(new ClockProvider(5000));
-        _providersList.Add(new CountdownProvider(10000));
-        _providersList.Add(new HardwareMonitoringProvider(4000));
-        
-        ////
-        
-        foreach (FormattedStringProvider provider in _providersList)
-        {
-            provider.Init();
         }
     }
 
     private void SetNextProvider()
     {
-        int index = 0;
-        
-        if (_currentProvider != null)
-        {
-            index = _providersList.IndexOf(_currentProvider) + 1;
-            if (index >= _providersList.Count)
-            {
-                index = 0;
-            }
-        }
-
-        _currentProvider = _providersList[index];
+        if (_providersList.Count == 0) return;
+        int currentIndex = _currentProvider != null ? _providersList.IndexOf(_currentProvider) : -1;
+        int nextIndex = (currentIndex + 1) % _providersList.Count;
+        _currentProvider = _providersList[nextIndex];
     }
     
     private async Task MainCycle(CancellationToken ct)
     {
         while (!ct.IsCancellationRequested)
         {
-            _bte.SendString(_currentProvider?.GetValueString() ?? "0100011100end.\n");
+            if(_bte.Connected) _bte.SendData(_currentProvider?.GetValueString() ?? "167--16700end.\n");
             await Task.Delay(30, ct);
         }
     }

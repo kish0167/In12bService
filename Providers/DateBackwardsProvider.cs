@@ -1,12 +1,7 @@
-namespace IN12B8_WindowsService;
+namespace IN12B8_WindowsService.Providers;
 
-public class DateBackwardsProvider : FormattedStringProvider
+public class DateBackwardsProvider(int duration) : FormattedStringProvider(duration)
 {
-    public override void Init()
-    {
-        
-    }
-
     public override string GetValueString()
     {
         string msg = "0:end.\n";
@@ -14,6 +9,4 @@ public class DateBackwardsProvider : FormattedStringProvider
 
         return msg;
     }
-
-    public DateBackwardsProvider(int duration) : base(duration) { }
 }

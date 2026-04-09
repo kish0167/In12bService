@@ -1,47 +1,75 @@
-using System.Globalization;
-using System.Net.Mime;
-using IN12B8_WindowsService.CoreLogic;
-
-namespace IN12B8_WindowsService;
 using System.IO.Ports;
-using System;
 
-public class BteSerialClient
+namespace IN12B8_WindowsService.CoreLogic;
+
+public class BteSerialClient : IDisposable
 {
     private SerialPort? _serialPort;
-    private bool _connected = false;
+    private readonly SemaphoreSlim _connectionLock = new(1, 1);
+    private readonly int _reconnectDelay = 2000;
+
+    public bool Connected => _serialPort?.IsOpen ?? false;
     
-    public async Task Connect()
+    public async Task StartAsync(CancellationToken ct)
     {
-        await FindAndConnectPort();
+        while (!ct.IsCancellationRequested)
+        {
+            if (!Connected)
+            {
+                await TryConnectAsync();
+            }
+            
+            await Task.Delay(_reconnectDelay, ct);
+        }
     }
-
-    public void SendString(string msg)
+    
+    private async Task TryConnectAsync()
     {
-        if (!msg.EndsWith("\n"))
-        {
-            msg += "\n";
-        }
+        if (!await _connectionLock.WaitAsync(0)) return;
 
-        if (!msg.EndsWith("end.\n"))
-        {
-            msg = "9999999900end.\n";
-        }
-        
-        if (!_connected)
-        {
-            return;
-        }
-        
         try
         {
-            _serialPort?.WriteLine(msg);
+            string portString = TxtHandler.ReadTxt("comport.txt");
+            if (!int.TryParse(portString, out int portNumber)) return;
+            ClosePort();
+            CreateSerialPort(portNumber);
+            if (_serialPort == null) return;
+            
+            _serialPort.ErrorReceived += OnSerialError;
+            _serialPort.Open();
+            _serialPort.WriteLine("0123456700end.");
+
+            Console.WriteLine($"Connected to COM{portNumber}");
+        }
+        catch (Exception ex)
+        {
+            ClosePort();
+            Console.WriteLine($"Connection failed: {ex.Message}");
+        }
+        finally
+        {
+            _connectionLock.Release();
+        }
+    }
+    
+    public bool SendData(string msg)
+    {
+        if (!Connected) return false;
+
+        try
+        {
+            if (!msg.EndsWith("end.\n")) 
+            {
+                msg = msg.TrimEnd() + "end.\n";
+            }
+
+            _serialPort!.WriteLine(msg);
+            return true;
         }
         catch
         {
-            _connected = false;
-            _serialPort?.Close();
-            Task.Run(FindAndConnectPort);
+            ClosePort();
+            return false;
         }
     }
 
@@ -59,55 +87,29 @@ public class BteSerialClient
             WriteTimeout = 500
         };
     }
-
-    private async Task FindAndConnectPort()
+    
+    private void OnSerialError(object sender, SerialErrorReceivedEventArgs e)
     {
-        string portString = TxtHandler.ReadTxt("comport.txt");
-        
-        if (!Int32.TryParse(portString, out int port))
-        {
-            await Task.Delay(10000);
-            await FindAndConnectPort();
-            return;
-        }
-        
-        CreateSerialPort(port);
-        
-        for (int i = 0; i < 10; i++)
-        {
-            CreateSerialPort(port);
-            
-            if (await TryOpenSerialPort())
-            {
-                Console.WriteLine("successfully connected to COM" + port);
-                _connected = true;
-                return;
-            }
-            
-            Console.WriteLine("COM" + port + " returned error");
-            await Task.Delay(1500);
-        }
-
-        await FindAndConnectPort();
+        Console.WriteLine("Serial port error detected!");
+        ClosePort();
     }
 
-    private async Task<bool> TryOpenSerialPort()
+    private void ClosePort()
     {
         try
         {
-            _serialPort?.Open();
-            await Task.Delay(500);
-            SendTestMessage();
-            return true;
+            if (_serialPort == null) return;
+            _serialPort.ErrorReceived -= OnSerialError;
+            if (_serialPort.IsOpen) _serialPort.Close();
+            _serialPort.Dispose();
+            _serialPort = null;
         }
-        catch
-        {
-            return false;
-        }
+        catch { /* Ignore cleanup errors */ }
     }
 
-    private void SendTestMessage()
+    public void Dispose()
     {
-        _serialPort?.WriteLine("0123456700end.\n");
+        ClosePort();
+        _connectionLock.Dispose();
     }
 }

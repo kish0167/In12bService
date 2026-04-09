@@ -1,16 +1,9 @@
-namespace IN12B8_WindowsService;
+namespace IN12B8_WindowsService.Providers;
 
-public class ClockProvider : FormattedStringProvider
+public class ClockProvider(int duration) : FormattedStringProvider(duration)
 {
-    public override void Init()
-    {
-        
-    }
-
     public override string GetValueString()
     {
         return DateTime.Now.ToString("HHxmmxss") + "24end.\n";
     }
-
-    public ClockProvider(int duration) : base(duration) { }
 }

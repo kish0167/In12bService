@@ -1,6 +1,6 @@
-namespace IN12B8_WindowsService;
+namespace IN12B8_WindowsService.Providers;
 
-public class CountdownProvider : FormattedStringProvider
+public class CountdownProvider(int duration) : FormattedStringProvider(duration)
 {
     private readonly DateTime _endTime = new(2025, 12, 13);
 
@@ -12,6 +12,4 @@ public class CountdownProvider : FormattedStringProvider
         msg = "00000000" + msg;
         return msg;
     }
-
-    public CountdownProvider(int duration) : base(duration) { }
 }

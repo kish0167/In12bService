@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace IN12B8_WindowsService;
+namespace IN12B8_WindowsService.Providers.Helpers;
 
 public static class FloatFormatter
 {

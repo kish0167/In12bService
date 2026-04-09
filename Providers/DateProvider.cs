@@ -1,19 +1,11 @@
-namespace IN12B8_WindowsService;
+namespace IN12B8_WindowsService.Providers;
 
-public class DateProvider : FormattedStringProvider
+public class DateProvider(int duration) : FormattedStringProvider(duration)
 {
-    public override void Init()
-    {
-        
-    }
-
     public override string GetValueString()
     {
         string msg = "28end.\n";
         msg = DateTime.Now.ToString("ddMMyyyy") + msg; 
-
         return msg;
     }
-
-    public DateProvider(int duration) : base(duration) { }
 }
